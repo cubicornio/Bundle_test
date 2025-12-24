@@ -1,0 +1,43 @@
+{# templates/base.html #}
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}Cubicornio Bundle{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="icon" href="https://mainarchivos.s3.sa-east-1.amazonaws.com/main_cubi_head.webp">
+
+    {# Tailwind via CDN (starter) #}
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    {# Devicons #}
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css"
+    />
+
+    {# Lucide para iconos data-lucide #}
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      body {
+        background-color: #020617; /* slate-950 */
+        color: #f9fafb;           /* zinc-50 */
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-zinc-950">
+    <div class="max-w-5xl mx-auto px-4 py-8">
+      {% block content %}{% endblock %}
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        if (window.lucide && typeof lucide.createIcons === "function") {
+          lucide.createIcons();
+        }
+      });
+    </script>
+  </body>
+</html>
