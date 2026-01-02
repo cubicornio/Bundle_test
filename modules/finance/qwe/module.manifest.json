@@ -1,0 +1,13 @@
+{
+  "module": "finance",
+  "submodule": "qwe",
+  "version": "0.0.1",
+  "language": "python-flask",
+  "entrypoint": "modules/finance/qwe/interface/web/web_bp.py:web_bp",
+  "description": "Describe aquí el propósito del submódulo.",
+  "scopes_required": ["bundle:read"],
+  "ui": {
+    "menu_title": "qwe",
+    "icon": "puzzle"
+  }
+}

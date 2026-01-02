@@ -7,12 +7,18 @@ from typing import Any, Dict, List, Optional
 import requests
 from flask import Blueprint, render_template, session, request, current_app
 
+from pathlib import Path
+from services.submodule_workspace import SubmoduleWorkspaceService
+
+from services.cubicornio_oauth import get_valid_access_token, refresh_and_retry
 
 main_bp = Blueprint("main", __name__)
 
 # Base URL de Cubicornio (prod)
-CUBICORNIO_BASE_URL = os.getenv("CUBICORNIO_BASE_URL", "https://cubicornio.com").rstrip("/")
+CUBICORNIO_BASE_URL = "https://cubicornio.com"
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+workspace = SubmoduleWorkspaceService(PROJECT_ROOT)
 
 def _extract_access_token(token_obj: Any) -> Optional[str]:
     """
@@ -54,51 +60,45 @@ def _parse_scopes_from_token(token_obj: Any) -> List[str]:
     return [s for s in str(scope_str).split() if s.strip()]
 
 
+
 def _fetch_cubicornio_profile(token_obj: Any) -> Optional[Dict[str, Any]]:
     """
-    Llama a https://cubicornio.com/dev/oauth/profile con el access_token.
-    Devuelve dict con {user, business, is_owner, scopes} o None en error.
+    Llama a Cubicornio /dev/oauth/profile
+    con refresh automático si expira.
     """
-    access_token = _extract_access_token(token_obj)
+    access_token, _ = get_valid_access_token()
     if not access_token:
         return None
 
     url = f"{CUBICORNIO_BASE_URL}/dev/oauth/profile"
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Accept": "application/json",
-    }
+    headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/json"}
 
     try:
         resp = requests.get(url, headers=headers, timeout=5)
-    except Exception as exc:  # noqa: BLE001
+    except Exception:
         current_app.logger.exception("Error llamando a Cubicornio /dev/oauth/profile")
         return None
 
+    # ✅ fallback: si Cubicornio dice invalid_token, intenta refresh y reintenta 1 vez
+    if resp.status_code == 401:
+        new_access = refresh_and_retry()
+        if not new_access:
+            return None
+        headers["Authorization"] = f"Bearer {new_access}"
+        resp = requests.get(url, headers=headers, timeout=5)
+
     if not resp.ok:
-        current_app.logger.warning(
-            "Cubicornio /profile responded with %s: %s",
-            resp.status_code,
-            resp.text[:300],
-        )
+        current_app.logger.warning("Cubicornio /profile responded %s: %s", resp.status_code, resp.text[:200])
         return None
 
     try:
-        data = resp.json()
+        return resp.json()
     except Exception:
         return None
 
-    # Esperamos campos: user, business, is_owner, scopes
-    return data
 
 
-@main_bp.route("/")
-def home():
-    """
-    Landing del bundle:
-    - Si no hay token → mostrar botón 'Conectar con Cubicornio'
-    - Si hay token → mostrar estado conectado + info básica de usuario/empresa.
-    """
+def _build_context() -> Dict[str, Any]:
     token = session.get("cubicornio_token")
     oauth_error = request.args.get("oauth_error")
 
@@ -115,24 +115,34 @@ def home():
             is_owner = bool(profile.get("is_owner"))
             scopes = profile.get("scopes") or []
 
-            # Normalizar scopes a lista de strings
             if isinstance(scopes, str):
                 scopes = [s for s in scopes.split() if s.strip()]
             elif not isinstance(scopes, list):
                 scopes = []
 
-        # Si por alguna razón /profile no devolvió scopes,
-        # los intentamos leer del token OAuth.
         if not scopes:
             scopes = _parse_scopes_from_token(token)
 
-    return render_template(
-        "home.html",
-        token=token,
-        oauth_error=oauth_error,
-        cubi_user=cubi_user,
-        cubi_business=cubi_business,
-        is_owner=is_owner,
-        scopes=scopes,
-        cubicornio_url=CUBICORNIO_BASE_URL,
-    )
+    return {
+        "token": token,
+        "oauth_error": oauth_error,
+        "cubi_user": cubi_user,
+        "cubi_business": cubi_business,
+        "is_owner": is_owner,
+        "scopes": scopes,
+        "cubicornio_url": CUBICORNIO_BASE_URL,
+        "selected": workspace.get_selected(),
+        "submodules": [],
+    }
+
+
+@main_bp.route("/")
+def home():
+    # landing igual, solo con sidebar en el template
+    return render_template("home.html", **_build_context())
+
+
+@main_bp.route("/submodules")
+def submodules():
+    # nueva pantalla (sidebar -> link)
+    return render_template("submodules.html", **_build_context())

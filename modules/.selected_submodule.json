@@ -1,0 +1,12 @@
+{
+  "id": 5,
+  "group_name": "Finanzas",
+  "domain": "finance",
+  "subdomain": "qwe",
+  "capability_name": "qwe",
+  "repo_url": "https://github.com/josbek1995/cubicornioerp",
+  "repo_main_branch": "main",
+  "repo_visibility": "private",
+  "bundle_template": "python_flask_clean_v1",
+  "local_path": "modules/finance/qwe"
+}

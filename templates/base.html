@@ -28,7 +28,7 @@
     </style>
   </head>
   <body class="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-zinc-950">
-    <div class="max-w-5xl mx-auto px-4 py-8">
+    <div class="w-full max-w-none mx-auto px-4 md:px-6 lg:px-10 py-6">
       {% block content %}{% endblock %}
     </div>
 
@@ -39,5 +39,7 @@
         }
       });
     </script>
+
+    {% block extra_scripts %}{% endblock %}
   </body>
 </html>

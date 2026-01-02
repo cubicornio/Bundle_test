@@ -7,7 +7,7 @@ from config import Settings
 from oauth_client import register_cubicornio_oauth
 from routes.main import main_bp
 from routes.oauth_cubicornio import cubicornio_auth_bp
-
+from routes.submodule_workspace_api import workspace_api_bp
 
 def create_app() -> Flask:
     app = Flask(__name__, template_folder="templates")
@@ -24,5 +24,6 @@ def create_app() -> Flask:
     # Blueprints
     app.register_blueprint(main_bp)
     app.register_blueprint(cubicornio_auth_bp)
+    app.register_blueprint(workspace_api_bp)
 
     return app
