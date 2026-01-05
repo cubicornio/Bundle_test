@@ -5,40 +5,95 @@
     <meta charset="utf-8">
     <title>{% block title %}Cubicornio Bundle{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+
     <link rel="icon" href="https://mainarchivos.s3.sa-east-1.amazonaws.com/main_cubi_head.webp">
 
-    {# Tailwind via CDN (starter) #}
     <script src="https://cdn.tailwindcss.com"></script>
 
-    {# Devicons #}
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css"
-    />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css"/>
 
-    {# Lucide para iconos data-lucide #}
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-      body {
-        background-color: #020617; /* slate-950 */
-        color: #f9fafb;           /* zinc-50 */
-      }
+      body { background-color:#020617; color:#f9fafb; }
     </style>
+
+    {% block extra_head %}{% endblock %}
   </head>
+
   <body class="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-zinc-950">
     <div class="w-full max-w-none mx-auto px-4 md:px-6 lg:px-10 py-6">
-      {% block content %}{% endblock %}
-    </div>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        if (window.lucide && typeof lucide.createIcons === "function") {
-          lucide.createIcons();
-        }
-      });
-    </script>
+      <div id="layoutShell" class="flex flex-col md:flex-row gap-4">
+
+        {# Sidebar wrapper #}
+        <div id="sidebarWrapper" class="shrink-0">
+          {% include "_partials/sidebar.html" %}
+        </div>
+
+        {# Main content #}
+        <main class="flex-1 min-w-0">
+          <div
+            id="mainCard"
+            class="relative w-full rounded-3xl border border-emerald-400/60
+                   bg-gradient-to-b from-slate-950 via-slate-950 to-zinc-950
+                   text-zinc-50 p-5 md:p-8
+                   shadow-[0_0_40px_rgba(16,185,129,0.35)]
+                   overflow-hidden"
+          >
+            <div class="pointer-events-none absolute -top-32 -right-16 w-64 h-64 bg-emerald-500/15 blur-3xl rounded-full"></div>
+            <div class="pointer-events-none absolute -bottom-40 -left-24 w-72 h-72 bg-cyan-500/20 blur-3xl rounded-full"></div>
+            <div class="pointer-events-none absolute inset-0 border border-emerald-400/15 rounded-[1.6rem]"></div>
+
+            <div class="relative">
+              {% block content %}{% endblock %}
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.lucide && typeof lucide.createIcons === "function") {
+      lucide.createIcons();
+    }
+
+    const KEY = "bundle_sidebar_collapsed";
+
+    const desktopAside = document.querySelector("#sidebarWrapper aside");
+    const rail = document.getElementById("sidebarRail");
+
+    const btnAside = document.getElementById("sidebarToggleAside");
+    const btnRail  = document.getElementById("sidebarRailToggle");
+
+    if (!desktopAside || !rail || !btnAside || !btnRail) return;
+
+    function applyState(collapsed) {
+      if (collapsed) {
+        desktopAside.classList.add("md:hidden");   // ocultar aside en desktop
+        rail.classList.remove("md:hidden");        // mostrar rail solo en colapsado
+      } else {
+        desktopAside.classList.remove("md:hidden"); // mostrar aside
+        rail.classList.add("md:hidden");            // ocultar rail
+      }
+    }
+
+    const initial = localStorage.getItem(KEY) === "1";
+    applyState(initial);
+
+    btnAside.addEventListener("click", () => {
+      localStorage.setItem(KEY, "1");
+      applyState(true);
+    });
+
+    btnRail.addEventListener("click", () => {
+      localStorage.setItem(KEY, "0");
+      applyState(false);
+    });
+  });
+</script>
+
 
     {% block extra_scripts %}{% endblock %}
   </body>

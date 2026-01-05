@@ -1,16 +1,26 @@
 {# templates/_partials/sidebar.html #}
 {% set ep = request.endpoint or '' %}
 
+{# Desktop sidebar #}
 <aside class="hidden md:block w-72 shrink-0">
   <div class="sticky top-6 rounded-3xl border border-slate-800 bg-slate-950/70 backdrop-blur px-3 py-3">
+
     <div class="flex items-center gap-2 px-2 py-2">
       <div class="h-10 w-10 rounded-2xl bg-emerald-500/10 border border-emerald-400/40 flex items-center justify-center">
         <i data-lucide="puzzle" class="w-5 h-5 text-emerald-200"></i>
       </div>
-      <div class="leading-tight">
+
+      <div class="leading-tight min-w-0">
         <div class="text-sm font-black text-zinc-50">Bundle</div>
         <div class="text-[11px] text-zinc-400">Workspace Dev</div>
       </div>
+
+      {# Toggle dentro del sidebar (desktop) #}
+      <button id="sidebarToggleAside"
+              type="button"
+              class="ml-auto inline-flex items-center justify-center h-9 w-9 rounded-2xl border border-slate-800 bg-slate-950 text-zinc-200 hover:bg-slate-900">
+        <i id="sidebarToggleAsideIcon" data-lucide="chevron-left" class="w-4 h-4"></i>
+      </button>
     </div>
 
     <div class="my-3 h-px bg-slate-800"></div>
@@ -31,6 +41,14 @@
         <i data-lucide="blocks" class="w-4 h-4"></i>
         <span>Gestión de submódulo</span>
       </a>
+
+      <a href="{{ url_for('main.guidelines') }}"
+         class="flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-semibold transition
+         {% if ep == 'main.guidelines' %} bg-emerald-500/10 border border-emerald-500/30 text-emerald-200
+         {% else %} text-zinc-200 hover:bg-slate-900 border border-transparent {% endif %}">
+        <i data-lucide="book-open" class="w-4 h-4"></i>
+        <span>Guías</span>
+      </a>
     </nav>
 
     <div class="my-3 h-px bg-slate-800"></div>
@@ -48,8 +66,21 @@
         </div>
       {% endif %}
     </div>
+
   </div>
 </aside>
+
+{# Desktop rail cuando el sidebar está colapsado #}
+<div id="sidebarRail" class="hidden md:block">
+  <div class="sticky top-6">
+    <button id="sidebarRailToggle"
+            type="button"
+            class="h-14 w-10 rounded-2xl border border-slate-800 bg-slate-950/70 backdrop-blur
+                   text-zinc-200 hover:bg-slate-900 flex items-center justify-center">
+      <i id="sidebarRailIcon" data-lucide="chevron-right" class="w-5 h-5"></i>
+    </button>
+  </div>
+</div>
 
 {# Mobile topbar #}
 <div class="md:hidden mb-4 rounded-2xl border border-slate-800 bg-slate-950/70 backdrop-blur p-3 flex items-center justify-between">
@@ -71,6 +102,10 @@
     <a href="{{ url_for('main.submodules') }}"
        class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-800 text-zinc-200 hover:bg-slate-900">
       Submódulo
+    </a>
+    <a href="{{ url_for('main.guidelines') }}"
+       class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-800 text-zinc-200 hover:bg-slate-900">
+      Guías
     </a>
   </div>
 </div>

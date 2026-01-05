@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Guías de submódulos · Bundle{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-none">
+
+  <header class="flex items-start justify-between gap-4 flex-wrap">
+    <div class="flex items-start gap-3">
+      <div class="h-10 w-10 rounded-2xl bg-emerald-500/10 border border-emerald-400/40 flex items-center justify-center">
+        <i data-lucide="book-open" class="w-5 h-5 text-emerald-200"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl md:text-3xl font-black">Guías para desarrollar submódulos</h1>
+        <p class="mt-2 text-sm text-zinc-300 max-w-3xl">
+          Índice de reglas y recomendaciones. A la izquierda eliges un punto, a la derecha ves el detalle.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-950 px-3 py-1 text-[11px] text-zinc-300">
+        <i data-lucide="layers" class="w-4 h-4"></i>
+        <span class="font-black text-zinc-200">Vista:</span>
+        <span>Índice + detalle</span>
+      </span>
+    </div>
+  </header>
+
+  <!-- MOBILE: selector -->
+  <div class="mt-5 md:hidden">
+    <label class="text-[11px] uppercase tracking-wide text-zinc-400 font-black">Selecciona un punto</label>
+
+    <select id="guidelinesSelect"
+            class="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950 px-3 py-3 text-sm text-zinc-100">
+      {% set ns_m = namespace(n=0) %}
+      {% for g in guidelines %}
+        <optgroup label="{{ g.title }}">
+          {% for item in g["items"] %}
+            {% set ns_m.n = ns_m.n + 1 %}
+            <option value="{{ item.id }}">{{ ns_m.n }}. {{ item.title }}</option>
+          {% endfor %}
+        </optgroup>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- DESKTOP: 2 paneles -->
+  <div class="mt-5 grid gap-4 md:grid-cols-[360px_1fr]">
+
+    <!-- LEFT -->
+    <aside class="hidden md:block rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-400 font-black">Índice</div>
+
+      {# Grid 2 columnas para grupos colapsados #}
+      <div id="guidelinesGroups" class="mt-3 grid grid-cols-2 gap-3">
+        {% set rubik_borders = [
+          "border-red-500/50",
+          "border-blue-500/50",
+          "border-yellow-400/60",
+          "border-green-500/50",
+          "border-orange-500/60",
+          "border-zinc-200/25"
+        ] %}
+        {% set rubik_icons = [
+          "shield",
+          "database",
+          "server",
+          "layout-template",
+          "code-2",
+          "wrench"
+        ] %}
+
+        {% set ns = namespace(n=0) %}
+
+        {% for g in guidelines %}
+          {% set border_class = rubik_borders[(loop.index0) % (rubik_borders|length)] %}
+          {% set icon_name = (g.icon if g.icon is defined and g.icon else rubik_icons[(loop.index0) % (rubik_icons|length)]) %}
+          {% set gid = (g.id if g.id is defined and g.id else ("group-" ~ loop.index0)) %}
+
+          <div id="group-{{ gid }}"
+               class="guidelineGroup col-span-1 rounded-2xl border {{ border_class }} bg-slate-950 p-3 transition"
+               data-group="{{ gid }}"
+               data-open="0">
+
+            <!-- Header click -->
+            <button type="button"
+                    class="groupToggle w-full text-left"
+                    data-group-toggle="{{ gid }}">
+
+              <!-- Collapsed view -->
+              <div class="groupCollapsedView flex flex-col items-center justify-center text-center py-4">
+                <div class="h-12 w-12 rounded-2xl border border-slate-800 bg-slate-950 flex items-center justify-center">
+                  <i data-lucide="{{ icon_name }}" class="w-7 h-7 text-zinc-100"></i>
+                </div>
+                <div class="mt-2 text-sm font-black text-zinc-100 leading-tight">
+                  {{ g.title }}
+                </div>
+              </div>
+
+              <!-- Open view -->
+              <div class="groupOpenView hidden items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="h-8 w-8 rounded-2xl border border-slate-800 bg-slate-950 flex items-center justify-center shrink-0">
+                    <i data-lucide="{{ icon_name }}" class="w-4 h-4 text-zinc-100"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-sm font-black text-zinc-100 truncate">{{ g.title }}</div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <div class="text-[11px] text-zinc-400">{{ g["items"]|length }}</div>
+                  <i data-lucide="chevron-up" class="w-4 h-4 text-zinc-300"></i>
+                </div>
+              </div>
+
+            </button>
+
+            <!-- Items (solo title + número) -->
+            <div class="groupItems hidden mt-2 space-y-1">
+              {% for item in g["items"] %}
+                {% set ns.n = ns.n + 1 %}
+                <button type="button"
+                        class="guidelineBtn w-full text-left rounded-xl border border-transparent px-3 py-2 hover:bg-slate-900 transition"
+                        data-guideline="{{ item.id }}"
+                        data-group="{{ gid }}">
+                  <div class="flex items-center gap-2">
+                    <div class="inline-flex items-center justify-center h-6 min-w-[28px] px-2 rounded-xl border border-slate-800 bg-slate-950 text-[11px] font-black text-zinc-200">
+                      {{ ns.n }}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="text-sm font-black text-zinc-100 truncate">{{ item.title }}</div>
+                    </div>
+                  </div>
+                </button>
+              {% endfor %}
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <!-- RIGHT -->
+    <section class="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 md:p-5">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-400 font-black">Detalle</div>
+
+      <div class="mt-3">
+        {% set first_id = (guidelines[0]["items"][0].id if guidelines and guidelines[0]["items"] else "") %}
+        {% for g in guidelines %}
+          {% for item in g["items"] %}
+            <article id="detail-{{ item.id }}"
+                     class="guidelineDetail {% if item.id != first_id %}hidden{% endif %}">
+              <div class="flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <div class="text-[11px] text-zinc-400">Código: <span class="font-black text-zinc-200">{{ item.id }}</span></div>
+                  <h2 class="mt-1 text-xl md:text-2xl font-black">{{ item.title }}</h2>
+                  <p class="mt-2 text-sm text-zinc-300 max-w-3xl">{{ item.summary }}</p>
+                </div>
+                <span class="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/40 px-3 py-1 text-xs text-emerald-200">
+                  <i data-lucide="sparkles" class="w-4 h-4"></i>
+                  Guía
+                </span>
+              </div>
+
+              {% if item.bullets %}
+                <ul class="mt-4 space-y-2 text-sm text-zinc-200">
+                  {% for b in item.bullets %}
+                    <li class="flex gap-2">
+                      <i data-lucide="check" class="w-4 h-4 text-emerald-200 mt-0.5"></i>
+                      <span>{{ b }}</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+
+              {# partial opcional por id #}
+              <div class="mt-5">
+                {% include "_partials/guidelines/" ~ item.id ~ ".html" ignore missing %}
+              </div>
+            </article>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/submodule_guidelines.js') }}"></script>
+</div>
+{% endblock %}

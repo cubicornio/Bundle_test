@@ -11,6 +11,7 @@ from pathlib import Path
 from services.submodule_workspace import SubmoduleWorkspaceService
 
 from services.cubicornio_oauth import get_valid_access_token, refresh_and_retry
+from services.submodule_guidelines import get_submodule_guidelines
 
 main_bp = Blueprint("main", __name__)
 
@@ -146,3 +147,10 @@ def home():
 def submodules():
     # nueva pantalla (sidebar -> link)
     return render_template("submodules.html", **_build_context())
+
+
+@main_bp.route("/guidelines")
+def guidelines():
+    ctx = _build_context()
+    ctx["guidelines"] = get_submodule_guidelines()
+    return render_template("submodule_guidelines.html", **ctx)
